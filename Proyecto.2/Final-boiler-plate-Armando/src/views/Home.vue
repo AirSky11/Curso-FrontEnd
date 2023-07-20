@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div class="wrapper">
     <Nav />
 
@@ -13,26 +13,66 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onUpdated, onMounted } from 'vue'
 import { useTaskStore } from "../stores/task";
 import { useRouter } from 'vue-router';
 import Nav from '../components/Nav.vue';
 import NewTask from '../components/NewTask.vue';
 import TaskItem from '../components/TaskItem.vue';
+import Footer from '../components/Footer.vue';
 
+//Funcion para almacenamiento de tareas realicionadas con useTaskStore
 const taskStore = useTaskStore();
 
+//Funcion con una matriz con tareas almacenadas, computando automaticamente cuando "taskStore.tasksArr".
+const tasks =computed(() => taskStore.tasksArr);
+console.log("taskComputed:", tasks.value);
+
+//Funcion que se ejecuta cuando el componente se monta en el DOM.
+onMounted()
+
+</script> -->
+
+<template>
+  <div class="wrapper">
+    <Nav />
+    <div class="content">
+      <h3>Your account:</h3>
+      <router-link to="/account">Account</router-link>
+    </div>
+    <NewTask />
+    <h1>Tasks:</h1>
+    <TaskItem v-for="task in tasks" :key="task.id" :task="task" @taskDeleted="handleTaskDeleted(task)" />
+  </div>
+</template>
+<script setup>
+import { ref, onMounted,watch } from 'vue'
+import { useTaskStore } from "../stores/task";
+import { useRouter } from 'vue-router';
+import Nav from '../components/Nav.vue';
+import NewTask from '../components/NewTask.vue';
+import TaskItem from '../components/TaskItem.vue';
+import Profile from '../components/Profile.vue'
+const taskStore = useTaskStore();
 // Variable para guardar las tareas de supabase
 const tasks = ref([]);
-
 // Creamos una función que conecte a la store para conseguir las tareas de supabase
-const getTasks = async() => {
+const fetchTasks = async () => {
   tasks.value = await taskStore.fetchTasks();
 };
-
-getTasks();
-
+onMounted(fetchTasks); // Obtener las tareas al montar el componente
+watch(() => taskStore.tasksArr, (newTasks) => {
+  tasks.value = newTasks; // Actualizar las tareas cuando cambien en el almacén de tareas
+});
+const handleTaskDeleted = async (task) => {
+  const confirmed = confirm("Are you sure you want to delete this task?");
+  if (confirmed) {
+    await taskStore.deleteTask(task.id);
+    await fetchTasks(); // Actualizar la lista de tareas después de la eliminación
+  }
+};
 </script>
+
 
 <style></style>
 

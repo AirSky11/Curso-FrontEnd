@@ -7,7 +7,7 @@
 
     <form @submit.prevent="signIn" class="form-sign-in">
       <div class="form">
-      <div class="form-input">
+        <div class="form-input">
           <label class="input-field-label">E-mail</label>
           <input 
             type="email"
@@ -17,18 +17,18 @@
             v-model="email"
             required
             />
-      </div>
-      <div class="form-input">
-        <label class="input-field-label">Password</label>
-        <input 
-        type="password"
-        class="input-field"
-        placeholder="**********"
-        id="password"
-        v-model="password"
-        required
-        />
-      </div>
+        </div>
+        <div class="form-input">
+          <label class="input-field-label">Password</label>
+          <input 
+          type="password"
+          class="input-field"
+          placeholder="**********"
+          id="password"
+          v-model="password"
+          required
+          />
+        </div>
 
         <button class="button" type="submit">Sign In</button>
       </div>
@@ -38,7 +38,6 @@
   </div>
 
 </template>
-
 
 <script setup>
 import PersonalRouter from "./PersonalRouter.vue";
@@ -60,7 +59,7 @@ const redirect = useRouter();
 // Arrow function to Signin user to supaBase
 const signIn = async () => {
   try {
-    // Escribir comentario, tarea para casa
+    // Funcion para esperar que se autentique la informacion para ejecutar el codigo.
     await useUserStore().signIn(email.value, password.value);
     // Redirects user to the homeView
     redirect.push({ path: "/" });
@@ -72,4 +71,3 @@ const signIn = async () => {
 </script>
 
 <style></style>
-

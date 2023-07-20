@@ -1,33 +1,122 @@
-<template>
-<div class="container">
-    <h3>{{task.title}}</h3>
-    <button @click="deleteTask">Delete {{task.title}}</button>
-</div>
+<!-- <template>
+<div class="">
+    <h3 :class="{ taskComplete: task.is_complete }">{{ task.title }}</h3>
+    <h3 :class="{ taskComplete: task.is_complete }">{{ task.description }}</h3>
+
+    <button @click="deleteTask">Delete</button>
+    <button @click="toggleComplete">Complete</button>
+    <button @click="updateToggle">Edit</button>
+    
+    <div v-if="inputUpdate">
+      <input type="text" v-model="name" />
+      <input type="text" v-model="description" />
+      <button @click="updateTask">Update</button>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, onUpdated } from 'vue';
-import { useTaskStore } from '../stores/task';
-import { supabase } from '../supabase';
+import { ref, onUpdated, watch } from "vue";
+import { useTaskStore } from "../stores/task";
+import { supabase } from "../supabase";
 
 const taskStore = useTaskStore();
 
+const name = ref("");
+
+const description = ref("");
+
 const props = defineProps({
-    task: Object,
+  task: Object,
 });
 
 // Función para borrar la tarea a través de la store. El problema que tendremos aquí (y en NewTask.vue) es que cuando modifiquemos la base de datos los cambios no se verán reflejados en el v-for de Home.vue porque no estamos modificando la variable tasks guardada en Home. Usad el emit para cambiar esto y evitar ningún page refresh.
-const deleteTask = async() => {
-    await taskStore.deleteTask(props.task.id);
-
-    onUpdated(() => {
-        taskStore.fetchTasks()
-    })
+const deleteTask = async () => {
+  await taskStore.deleteTask(props.task.id);
 };
 
+// Utilizo una variable llamada inputUpdate que inicializo en false. Mi objetivo es utilizar esta variable en el DOM para ocultar los campos de entrada y así poder realizar una actualización más adelante.
+const inputUpdate = ref(false);
+
+// Funcion que realiza un "toggle" con un boton @click. La funcion cambia el valor de la variable de False a True. Como resultado, los campos de entrada y el boton se vuelven visibles en el DOM.
+const updateToggle = () => {
+  inputUpdate.value = !inputUpdate.value;
+};
+
+
+// Actualizacion de los datos de la tarea a traves de una funcion que se comunica con la store task.js.
+const updateTask = () => {
+  taskStore.updateTask(props.task.id, name.value, description.value);
+  name.value = "";
+  description.value = "";
+  updateToggle();
+};
+
+const toggleComplete = () => {
+  props.task.is_complete = !props.task.is_complete;
+  taskStore.completeTask(props.task.id, props.task.is_complete);
+};
+</script> -->
+
+<template>
+  <div>
+ <h3 :class="{ taskComplete: task.is_complete }">{{ task.title }}</h3>
+ <h3 :class="{ taskComplete: task.is_complete }">{{ task.description }}</h3>
+ <button @click="updateToggle">Edit</button>
+ <button @click="toggleComplete">Complete</button>
+ <button @click="deleteTask">Delete</button>
+ <div v-if="inputUpdate">
+   <input type="text" placeholder=" Task Title " v-model="name"/>
+   <textarea type="text" placeholder="Update Task Description" v-model="description" @keyup.enter="updateTask" ></textarea>
+   <button @click="updateTask">Update</button>
+ </div>
+</div>
+ </template>
+ <script setup>
+import { ref, onMounted, defineProps, defineEmits } from 'vue';
+import { useTaskStore } from "../stores/task";
+import { supabase } from "../supabase";
+const taskStore = useTaskStore();
+const name = ref("");
+const description = ref("");
+const props = defineProps({
+task: Object,
+});
+const emit = defineEmits(["taskUpdated", "taskDeleted"]);
+// Función para borrar la tarea a través de la store. El problema que tendremos aquí (y en NewTask.vue) es que cuando modifiquemos la base de datos los cambios no se verán reflejados en el v-for de Home.vue porque no estamos modificando la variable tasks guardada en Home. Usad el emit para cambiar esto y evitar ningún page refresh.
+const deleteTask = async () => {
+await taskStore.deleteTask(props.task.id);
+emit('taskDeleted');
+};
+// Utilizo una variable llamada inputUpdate que inicializo en false. Mi objetivo es utilizar esta variable en el DOM para ocultar los campos de entrada y así poder realizar una actualización más adelante.
+const inputUpdate = ref(false);
+// Funcion que realiza un "toggle" con un boton @click. La funcion cambia el valor de la variable de False a True. Como resultado, los campos de entrada y el boton se vuelven visibles en el DOM.
+const updateToggle = () => {
+inputUpdate.value = !inputUpdate.value;
+};
+// Actualizacion de los datos de la tarea a traves de una funcion que se comunica con la store task.js.
+const updateTask = () => {
+taskStore.updateTask(props.task.id, name.value, description.value);
+name.value = "";
+description.value = "";
+updateToggle();
+};
+const toggleComplete = () => {
+props.task.is_complete = !props.task.is_complete;
+taskStore.completeTask(props.task.id, props.task.is_complete);
+emit('taskUpdated');
+};
+onMounted(() => {
+emit('taskUpdated'); // Obtener las tareas al montar el componente
+});
 </script>
 
-<style></style>
+<style>
+
+.taskComplete {
+    text-decoration: line-through;
+}
+</style>
 
 <!--
 **Hints**
